@@ -18,7 +18,7 @@ import Graphics.Drawing (Drawing, circle, fillColor, filled, render)
 import Math ((%), cos, pi, sin)
 import Test.QuickCheck.Arbitrary (class Arbitrary, arbitrary)
 
-import Fraction (Fraction, denominator, from, numerator, over)
+import Fraction (Fraction, from, numerator, over, simplify)
 import Prelude
 
 -------------------------------------------------------------------------------
@@ -90,7 +90,7 @@ cogPosition
 
 cogPosition cogToFrameRatio time
   = { centre:   rotate time initial
-    , rotation: time / from cogToFrameRatio
+    , rotation: -time / from cogToFrameRatio
     }
   where
     initial = Coordinate { x: 0.0, y: 1.0 - from cogToFrameRatio }
@@ -145,11 +145,13 @@ app = do
 
   context <- lift (getContext2D canvas)
 
-  let rollingRatio = cogToFrameRatio * penOffsetToCogDiameterRatio
-      crossover    = toNumber $ lcm (numerator   rollingRatio)
-                                    (denominator rollingRatio)
+  let crossover
+        = toNumber
+        $ numerator
+        $ simplify
+        $ cogToFrameRatio
 
-      completion   = 2000.0 * pi * crossover
+      completion = 2000.0 * pi * crossover
 
   stopDrawing <- lift $ animate seconds \time -> do
     let config = { cogToFrameRatio, penOffsetToCogDiameterRatio }
